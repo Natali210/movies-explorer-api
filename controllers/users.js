@@ -5,6 +5,7 @@ const { MONGO_DB_CODE } = require('../utils/constants');
 const RequestError = require('../errors/RequestError');
 const RepeatingDataError = require('../errors/RepeatingDataError');
 const NotFoundError = require('../errors/NotFoundError');
+const { INCORRECT_USER_DATA, USER_ALREADY_EXIST, NOT_FOUND_USER } = require('../utils/constants');
 
 // Создание пользователя
 const createNewUser = async (req, res, next) => {
@@ -24,10 +25,10 @@ const createNewUser = async (req, res, next) => {
     });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return next(new RequestError('Некорректные данные пользователя'));
+      return next(new RequestError(INCORRECT_USER_DATA));
     }
     if (err.code === MONGO_DB_CODE) {
-      return next(new RepeatingDataError('Такой пользователь уже существует'));
+      return next(new RepeatingDataError(USER_ALREADY_EXIST));
     }
     return next(err);
   }
@@ -37,11 +38,11 @@ const createNewUser = async (req, res, next) => {
 const getСurrentUser = async (req, res, next) => {
   try {
     const currentUser = await User.findById(req.user._id)
-      .orFail(new NotFoundError('Пользователь c данным _id не найден'));
+      .orFail(new NotFoundError(NOT_FOUND_USER));
     return res.send(currentUser);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      return next(new RequestError('Указан некорректный _id'));
+      return next(new RequestError(INCORRECT_USER_DATA));
     }
     return next(err);
   }
@@ -53,14 +54,17 @@ const changeUserInfo = async (req, res, next) => {
     const { email, name } = req.body;
     // eslint-disable-next-line max-len
     const changedProfile = await User.findByIdAndUpdate(req.user._id, { email, name }, { new: true, runValidators: true })
-      .orFail(new NotFoundError('Пользователь c данным _id не найден'));
+      .orFail(new NotFoundError(NOT_FOUND_USER));
     return res.send(changedProfile);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return next(new RequestError('Некорректные данные для обновления профиля'));
+      return next(new RequestError(INCORRECT_USER_DATA));
     }
     if (err instanceof mongoose.Error.CastError) {
-      return next(new RequestError('Указан некорректный _id'));
+      return next(new RequestError(INCORRECT_USER_DATA));
+    }
+    if (err.code === MONGO_DB_CODE) {
+      return next(new RepeatingDataError(USER_ALREADY_EXIST));
     }
     return next(err);
   }

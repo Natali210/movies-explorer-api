@@ -6,6 +6,7 @@ const { login, logout } = require('../controllers/login');
 const { auth } = require('../middlewares/auth');
 const { newUserValidation, loginValidation } = require('../middlewares/validation');
 const NotFoundError = require('../errors/NotFoundError');
+const { NOT_FOUND_PAGE } = require('../utils/constants');
 
 // Роуты, которым авторизация не нужна
 router.post('/signin', loginValidation, login);
@@ -22,7 +23,7 @@ router.use(userRoutes);
 router.use(movieRoutes);
 
 router.use((req, res, next) => {
-  next(new NotFoundError('Страница не найдена'));
+  next(new NotFoundError(NOT_FOUND_PAGE));
 });
 
 module.exports = router;

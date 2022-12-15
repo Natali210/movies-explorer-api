@@ -9,9 +9,10 @@ const handleErrors = require('./middlewares/handleErrors');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const cors = require('./middlewares/cors');
 const { limiter } = require('./middlewares/rateLimiter');
+const { MONGO_URL } = require('./utils/constants');
 
 // Берем порт из переменных окружения
-const { PORT = 3001, MONGO_URL = 'mongodb://localhost:27017/moviesdb' } = process.env;
+const { PORT = 3001 } = process.env;
 
 mongoose.connect(MONGO_URL);
 

@@ -3,6 +3,7 @@ const Movie = require('../models/movie');
 const RequestError = require('../errors/RequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const NoRightsError = require('../errors/NoRightsError');
+const { INCORRECT_MOVIE_DATA, NOT_FOUND_MOVIE, NOT_AUTHOR } = require('../utils/constants');
 
 // Получение всех сохранённых текущим пользователем фильмов
 const getMovies = async (req, res, next) => {
@@ -47,7 +48,7 @@ const postNewMovie = async (req, res, next) => {
     return res.send(movie);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return next(new RequestError('Некорректные данные фильма'));
+      return next(new RequestError(INCORRECT_MOVIE_DATA));
     }
     return next(err);
   }
@@ -56,17 +57,16 @@ const postNewMovie = async (req, res, next) => {
 // Удаление фильма по id
 const deleteMovie = async (req, res, next) => {
   try {
-    // eslint-disable-next-line max-len
     const movie = await Movie.findById(req.params.movieId)
-      .orFail(new NotFoundError('Фильм c данным _id не найдена'));
+      .orFail(new NotFoundError(NOT_FOUND_MOVIE));
     if (movie.owner.toString() !== req.user._id) {
-      return next(new NoRightsError('Фильм принадлежит другому пользователю'));
+      return next(new NoRightsError(NOT_AUTHOR));
     }
     const movieToDelete = await Movie.findByIdAndRemove(req.params.movieId);
     return res.send(movieToDelete);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      return next(new RequestError('Некорректные данные фильма'));
+      return next(new RequestError(INCORRECT_MOVIE_DATA));
     }
     return next(err);
   }
