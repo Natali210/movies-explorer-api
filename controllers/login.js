@@ -20,7 +20,7 @@ const login = async (req, res, next) => {
     }
     const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? SECRET_JWT : 'dev-secret', { expiresIn: '7d' });
     res.cookie('jwt', token, {
-      maxAge: 3600000 * 24 * 7, /* sameSite: 'None', httpOnly: true, secure: true, */
+      maxAge: 3600000 * 24 * 7, sameSite: 'None', httpOnly: true, secure: true,
     }).send({ message: SUCCESSFUL_LOGIN });
   } catch (err) {
     next(err);
